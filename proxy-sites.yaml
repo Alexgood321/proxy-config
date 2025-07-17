@@ -130,3 +130,5 @@ payload:
   - DOMAIN-SUFFIX,s.ytimg.com
   - DOMAIN-SUFFIX,ggpht.com
   - DOMAIN-SUFFIX,yt3.ggpht.com
+
+  - DOMAIN-KEYWORD,grok
