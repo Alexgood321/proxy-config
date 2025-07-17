@@ -81,5 +81,13 @@ payload:
   - DOMAIN-SUFFIX,youtube
   - DOMAIN-SUFFIX,yt3.ggpht.com
   - DOMAIN-SUFFIX,z.kubikvkube.online
-  - DOMAIN-SUFFIX,aistudio.google
-  - DOMAIN-SUFFIX,ai.google.dev
+  -  - DOMAIN-SUFFIX,gemini.google.com
+  - DOMAIN-SUFFIX,notebooklm.google.com
+  - DOMAIN-SUFFIX,aistudio.google.com
+  - DOMAIN-SUFFIX,generativelanguage.googleapis.com
+  - DOMAIN-SUFFIX,cloudcode-pa.googleapis.com
+  - DOMAIN-SUFFIX,ai.google
+  - DOMAIN-SUFFIX,makersuite.google.com
+  - DOMAIN-SUFFIX,deepmind.google.com
+  - DOMAIN-SUFFIX,labs.google.com
+  - DOMAIN-SUFFIX,ml.google.com
