@@ -1,0 +1,44 @@
+mode: rule
+log-level: info
+
+proxies:
+  - name: "Анаит (Shadowsocks)"
+    type: ss
+    server: 77.75.230.79
+    port: 19501
+    cipher: chacha20-ietf-poly1305
+    password: "GQpDp9kDQM09HqnJuupPuY"
+
+  - name: "HLVPN (Trojan)"
+    type: trojan
+    server: free-de-2.undef.network
+    port: 443
+    password: "PhxacxZBJIstMON9TdhQgAVSB"
+    sni: free-de-2.undef.network
+    skip-cert-verify: true
+    network: ws
+    ws-opts:
+      path: "/f2fc2a1f"
+      headers:
+        Host: free-de-2.undef.network
+
+proxy-groups:
+  - name: "PROXY"
+    type: select
+    proxies:
+      - "Анаит (Shadowsocks)"
+      - "HLVPN (Trojan)"
+      - "DIRECT"
+
+rule-providers:
+  proxy-sites:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/Alexgood321/proxy-config/main/proxy-sites.yaml"
+    path: ./ruleset/proxy-sites.yaml
+    interval: 86400
+
+rules:
+  - RULE-SET,proxy-sites,PROXY
+  - GEOIP,RU,DIRECT
+  - MATCH,DIRECT
