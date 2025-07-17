@@ -124,3 +124,7 @@ payload:
   - DOMAIN-SUFFIX,ai.google
   - DOMAIN-SUFFIX,ai.google.dev
   - DOMAIN-SUFFIX,one.google.com
+  - DOMAIN-SUFFIX,aistudio.google.com
+  - DOMAIN-SUFFIX,ai.google.com
+  - DOMAIN-SUFFIX,developers.google.com
+  - DOMAIN-SUFFIX,dl.google.com
