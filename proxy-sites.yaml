@@ -81,3 +81,5 @@ payload:
   - DOMAIN-SUFFIX,youtube
   - DOMAIN-SUFFIX,yt3.ggpht.com
   - DOMAIN-SUFFIX,z.kubikvkube.online
+  - DOMAIN-SUFFIX,aistudio.google
+  - DOMAIN-SUFFIX,ai.google.dev
