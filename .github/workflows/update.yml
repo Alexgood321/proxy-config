@@ -3,7 +3,7 @@ name: Update ClashX config
 on:
   push:
     paths:
-      - "server.txt"
+      - "Server.txt"
   workflow_dispatch: {}   # ← ручной запуск из вкладки Actions
 
 jobs:
