@@ -4,13 +4,15 @@ on:
   push:
     paths:
       - "Server.txt"
-  workflow_dispatch: {}   # ручной запуск из вкладки Actions
+      - "scripts/update_clash.py"
+      - ".github/workflows/update.yml"
+  workflow_dispatch: {}   # ручной запуск
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # нужно, чтобы запушить изменения обратно
+      contents: write
     env:
       SERVER_FILE: Server.txt
       TARGET_FILE: proxy for clashx pro.yaml
