@@ -4,24 +4,20 @@ on:
   push:
     paths:
       - "server.txt"
+  workflow_dispatch: {}   # ← ручной запуск из вкладки Actions
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # чтобы смог пушить обратно
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Install deps
-        run: pip install ruamel.yaml requests
-
-      - name: Run updater
-        run: python scripts/update_clash.py
-
+      - run: pip install ruamel.yaml requests
+      - run: python scripts/update_clash.py
       - name: Commit & push
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
