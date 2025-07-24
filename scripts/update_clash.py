@@ -30,7 +30,6 @@ yaml.indent(mapping=2, sequence=4, offset=2)
 # ----------------- helpers -----------------
 def safe_b64decode(s: str) -> str:
     s = s.strip()
-    # иногда приходят urlsafe + без паддинга
     s += "=" * (-len(s) % 4)
     return base64.urlsafe_b64decode(s.encode()).decode(errors="ignore")
 
@@ -47,7 +46,6 @@ def read_lines():
 
 
 def ensure_lists(cfg):
-    # Нормализуем альтернативные ключи
     if "proxies" not in cfg and "Proxy" in cfg:
         cfg["proxies"] = cfg.pop("Proxy")
     if "proxy-groups" not in cfg and "Proxy Group" in cfg:
@@ -80,22 +78,13 @@ def percent_decode(s: str) -> str:
 
 # -------------- parsers ----------------
 def parse_vless(uri: str):
-    """
-    Вариант, который присылал ты (userinfo в base64). Поддерживает:
-      - obfs=websocket
-      - obfsParam (Host), path
-      - tls=1, peer/sni
-      - remarks (name)
-    Также поддерживаются обычные "стандартные" vless://uuid@host:port?... строки.
-    """
     if not uri.startswith("vless://"):
         return None
 
-    # Попробуем сначала "классическую" форму: vless://uuid@host:port?... (без base64)
+    # стандартный формат vless://uuid@host:port?...
     try:
         parsed = urlparse(uri)
         if parsed.username and parsed.hostname and parsed.port:
-            # стандартный формат
             q = parse_qs(parsed.query)
             network = q.get("type", ["tcp"])[0]
             if "obfs" in q and "websocket" in q.get("obfs", [""])[0].lower():
@@ -129,13 +118,12 @@ def parse_vless(uri: str):
     except Exception:
         pass
 
-    # Твой "кастомный" формат (base64 после vless:// до @)
+    # формат с base64 в userinfo
     rest = uri[len("vless://"):]
     if "@" not in rest:
         raise ValueError("vless url without @")
     userinfo, after_at = rest.split("@", 1)
 
-    # decode userinfo
     try:
         decoded = safe_b64decode(userinfo)
         if ":" in decoded:
@@ -209,7 +197,6 @@ def parse_vmess(uri: str):
     except Exception as e:
         raise ValueError(f"vmess decode error: {e}")
 
-    # Ключевые поля
     add = data.get("add")
     port = int(data.get("port", 0))
     uuid = data.get("id")
@@ -220,7 +207,6 @@ def parse_vmess(uri: str):
     sni = data.get("sni") or host
     path = data.get("path", "/") or "/"
     name = data.get("ps") or f"{add}:{port}"
-    type_ = data.get("type", "")
 
     proxy = {
         "name": name,
@@ -242,10 +228,8 @@ def parse_vmess(uri: str):
         if host:
             ws_opts["headers"] = {"Host": host}
         proxy["ws-opts"] = ws_opts
-    elif net == "h2":  # HTTP/2
+    elif net == "h2":
         proxy["http-opts"] = {"path": [path], "headers": {"Host": [host]}} if host else {"path": [path]}
-
-    # gRPC и др. можно дописать при необходимости
 
     return proxy
 
@@ -273,7 +257,6 @@ def parse_trojan(uri: str):
         "sni": sni if sni else None,
         "network": network,
     }
-    # ws-over-trojan (редко, но бывает)
     if network == "ws":
         path = percent_decode(q.get("path", ["/"])[0] or "/")
         host = q.get("host", [""])[0]
@@ -288,8 +271,6 @@ def parse_ss(uri: str):
     if not uri.startswith("ss://"):
         return None
 
-    # ss://<base64(method:password@host:port)>#name
-    # или ss://method:password@host:port?plugin=...#name
     main = uri[len("ss://"):]
     name = ""
     if "#" in main:
@@ -309,11 +290,9 @@ def parse_ss(uri: str):
 
     def parse_host_port(hp: str):
         if "@" not in hp:
-            # hp = host:port
             if ":" not in hp:
                 raise ValueError("ss no port")
             return None, None, *hp.rsplit(":", 1)
-        # method:password@host:port
         left, right = hp.split("@", 1)
         if ":" not in left:
             raise ValueError("ss invalid cred")
@@ -323,12 +302,10 @@ def parse_ss(uri: str):
         h, prt = right.rsplit(":", 1)
         return m, p, h, prt
 
-    # Попробуем как base64
     try:
         decoded = safe_b64decode(main)
         method, password, host, port = parse_host_port(decoded)
     except Exception:
-        # Не base64, значит уже в открытом виде
         method, password, host, port = parse_host_port(main)
 
     port = int(port)
@@ -347,7 +324,6 @@ def parse_ss(uri: str):
     }
 
     if plugin:
-        # plugin формат: "obfs-local;obfs=http;obfs-host=example.com"
         proxy["plugin"] = plugin.split(";")[0]
         opts = {}
         for kv in plugin.split(";")[1:]:
@@ -364,7 +340,6 @@ def parse_ss(uri: str):
 
 
 def parse_socks(uri: str):
-    # socks5://user:pass@host:port  | socks://
     parsed = urlparse(uri)
     if parsed.scheme not in ("socks5", "socks"):
         return None
@@ -386,16 +361,13 @@ def parse_socks(uri: str):
 
 
 def parse_http_proxy(uri: str):
-    # http://user:pass@host:port -> Clash type: http
     parsed = urlparse(uri)
     if parsed.scheme != "http":
         return None
     if not parsed.hostname or not parsed.port:
         raise ValueError("http proxy missing host/port")
-
-    # Если нет логина/пароля — вероятно это YAML-подписка, вернём None
     if not (parsed.username or parsed.password):
-        return None
+        return None  # скорее всего это YAML-подписка
 
     name = percent_decode(parsed.fragment) or f"{parsed.hostname}:{parsed.port}"
     proxy = {
@@ -413,12 +385,6 @@ def parse_http_proxy(uri: str):
 
 
 def is_yaml_subscription(url: str) -> bool:
-    """
-    Решаем, что http(s) ссылка — это YAML подписка, если:
-      - нет логина/пароля
-      - (и) выглядит как подписка: содержит 'clash' или '.yaml' (условно)
-    Можно упростить: если нет логина/пароля — это подписка.
-    """
     p = urlparse(url)
     if p.scheme not in ("http", "https"):
         return False
@@ -428,16 +394,13 @@ def is_yaml_subscription(url: str) -> bool:
 
 
 def try_parse_line(line: str):
-    # 1) yaml subscriptions
     if line.startswith("http://") or line.startswith("https://"):
         if is_yaml_subscription(line):
             return "yaml-url", line
-        # иначе это http-прокси
         http_p = parse_http_proxy(line)
         if http_p:
             return "proxy", http_p
 
-    # 2) protocol-specific
     if line.startswith("vless://"):
         return "proxy", parse_vless(line)
     if line.startswith("vmess://"):
@@ -449,7 +412,6 @@ def try_parse_line(line: str):
     if line.startswith("socks5://") or line.startswith("socks://"):
         return "proxy", parse_socks(line)
 
-    # TODO: ssr://, hysteria://, hy2://, tuic://, wireguard://, vless-reality ...
     raise ValueError(f"Unknown/unsupported line format: {line[:60]}...")
 
 
@@ -520,17 +482,15 @@ def main():
         except Exception as e:
             print(f"[WARN] line: {ln[:80]} -> {e}")
 
-    # прокси из yaml-подписок
     for inc in collected_yaml_cfgs:
         inc = ensure_lists(inc)
         if "proxies" in inc and inc["proxies"]:
             collected_proxies.extend(inc["proxies"])
 
-    # merge
     base_cfg, new_names = merge_proxies(base_cfg, collected_proxies)
     add_to_groups(base_cfg, new_names)
 
-    # backup
+    # backup (останется untracked, т.к. *.bak в .gitignore)
     try:
         if TARGET_YAML.exists():
             TARGET_YAML.replace(BACKUP_YAML)
