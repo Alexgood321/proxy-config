@@ -1,0 +1,33 @@
+name: Update ClashX config
+
+on:
+  push:
+    paths:
+      - "server.txt"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install ruamel.yaml requests
+
+      - name: Run updater
+        run: python scripts/update_clash.py
+
+      - name: Commit & push
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add "proxy for clashx pro.yaml"
+            git commit -m "auto: update clashx config from server.txt"
+            git push
+          fi
