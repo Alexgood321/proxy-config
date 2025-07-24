@@ -8,7 +8,7 @@ import requests
 from ruamel.yaml import YAML
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-SERVER_TXT = ROOT / "server.txt"
+SERVER_TXT = ROOT / "Server.txt"
 TARGET_YAML = ROOT / "proxy for clashx pro.yaml"   # путь к твоему основному файлу
 BACKUP_YAML = ROOT / "proxy for clashx pro.yaml.bak"
 
