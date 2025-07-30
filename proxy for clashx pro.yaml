@@ -29,15 +29,29 @@ proxies:
     cipher: chacha20-ietf-poly1305
     password: 7jvHHF5SaFob
     udp: true
+
+proxy-providers:
+  unlckmy:
+    type: http
+    url: "https://unlckmy.net/sub/u1015891s3677232p69/52a75a6c37c4798ce9e12f8bd58bb097"
+    interval: 3600
+    path: ./proxy_provider/unlckmy.yaml
+    health-check:
+      enable: true
+      interval: 300
+      url: http://cp.cloudflare.com/generate_204
+
 proxy-groups:
   - name: "PROXY"
     type: select
     proxies:
       - "Анаит (Shadowsocks)"
       - "HLVPN (Trojan)"
-      - "DIRECT"
-
       - ⚡ b2n.ir/v2ray-configs | 767
+      - DIRECT
+    use:
+      - unlckmy
+
 rule-providers:
   proxy-sites:
     type: http
