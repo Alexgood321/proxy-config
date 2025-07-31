@@ -30,16 +30,13 @@ proxies:
     password: 7jvHHF5SaFob
     udp: true
 
-proxy-providers:
-  unlckmy:
-    type: http
-    url: "https://unlckmy.net/sub/u1015891s3677232p69/52a75a6c37c4798ce9e12f8bd58bb097"
-    interval: 3600
-    path: ./proxy_provider/unlckmy.yaml
-    health-check:
-      enable: true
-      interval: 300
-      url: http://cp.cloudflare.com/generate_204
+  - name: "TrojanFinland"
+    type: trojan
+    server: 5.61.89.166
+    port: 443
+    password: "pofshu-Tyrko7-vorup"
+    sni: 5.61.89.166
+    skip-cert-verify: true
 
 proxy-groups:
   - name: "PROXY"
@@ -48,6 +45,7 @@ proxy-groups:
       - "Анаит (Shadowsocks)"
       - "HLVPN (Trojan)"
       - ⚡ b2n.ir/v2ray-configs | 767
+      - "TrojanFinland"
       - DIRECT
     use:
       - unlckmy
