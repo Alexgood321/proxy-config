@@ -135,3 +135,4 @@ payload:
   - DOMAIN-KEYWORD,grok
   - DOMAIN-SUFFIX,x.ai
   - DOMAIN-SUFFIX,make.com
+  - DOMAIN-SUFFIX,kubikvkube
