@@ -136,3 +136,9 @@ payload:
   - DOMAIN-SUFFIX,x.ai
   - DOMAIN-SUFFIX,make.com
   - DOMAIN-SUFFIX,kubikvkube
+  - *.openai.com
+  - auth0.openai.com
+  - cdn.openai.com
+  - api.openai.com
+  - platform.openai.com
+  - files.oaiusercontent.com
