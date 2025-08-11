@@ -143,3 +143,4 @@ payload:
   - platform.openai.com
   - files.oaiusercontent.com
   - nnmclub
+  - rutracker
